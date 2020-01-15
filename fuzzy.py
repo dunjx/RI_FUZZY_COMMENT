@@ -1,6 +1,7 @@
 from enum import Enum, unique
 import inputParse
 import classes
+import modifiers
 import math
 import re
 
@@ -74,7 +75,7 @@ class MFOutput:
 
 
 badwordFunc = MFInput("FuncOfBad", [0, 60], [1, 0], 9)
-goodwordFunc = MFInput("FuncOfGood", [0, 100], [0, 1], 4)
+goodwordFunc = MFInput("FuncOfGood", [0, 110], [0, 1], 4)
 
 
 ratings = []
@@ -82,19 +83,20 @@ positiveStr = {"so", "very",  "too", "much", "really", "quite", "rather", "espec
                  "extremely", "highly", "relatively", "specifically", "fairly", "completely", "ultimately", "widely",
                  "seriously", "essentially", "significantly", "totally",
                  "truly", "definitely", "deeply",  "strongly", "more", "such"}
-negativeStr = {"not", "hardly", "less", "nearly", "almost", "mostly", "slightly", "somewhat"}
+negativeStr = {"hardly", "less", "nearly", "almost", "mostly", "slightly", "somewhat"}
 
 sentences = list()
 for sentence in inputParse.review.split(". "):
     sentences.append(re.sub(r"[.,!?]", r"", sentence).split(" "))
 
-print("Recenice cele: ", sentences)
+#print("Recenice cele: ", sentences)
 
 index1 = 0
 wordCount = 0
 miTotal = 0
+notHappened = False
 
-for wordList in inputParse.premiseList:
+for wordList in inputParse.finalList:
     l2 = sentences[index1]
     index1 += 1
     for word in wordList:
@@ -106,70 +108,119 @@ for wordList in inputParse.premiseList:
                 wordCount += 1
                 index3 = index2
                 mi = goodwordFunc.getMi(classes.goodKeywords[word])
-                print("Dobar Mi: ", mi)
+                #print("Dobar Mi: ", mi)
+                notHappened = False
 
                 while index3 > 0:
                     if l2[index3 - 1] in negativeStr:
+                        val = modifiers.impactMap.get(l2[index3 - 1])
+                        mi = math.pow(mi, val)
                         index3 -= 1
-                        mi = math.pow(mi, 2)
                     elif l2[index3 - 1] in positiveStr:
+                        val = modifiers.impactMap.get(l2[index3 - 1])
+                        mi = math.pow(mi, 1/val)
                         index3 -= 1
-                        mi = math.pow(mi, 0.5)
+                    elif l2[index3 - 1] == "not":
+                        mi = 1 - mi
+                        index3 -= 1
+                        notHappened = not notHappened
                     else:
                         break
-                miTotal += mi
+                if notHappened:
+                    miTotal += (-1)*mi
+                    notHappened = False
+                else:
+                    miTotal += mi
             else:
                 wordCount += 1
                 index3 = index2
                 mi = badwordFunc.getMi(classes.badKeywords[word])
-                print("Los Mi: ", mi)
+                #print("Los Mi: ", mi)
+                notHappened = False
 
                 while index3 > 0:
                     if l2[index3 - 1] in negativeStr:
+                        val = modifiers.impactMap.get(l2[index3 - 1])
+                        mi = math.pow(mi, 1/val)
                         index3 -= 1
-                        mi = math.pow(mi, 0.5)
                     elif l2[index3 - 1] in positiveStr:
+                        val = modifiers.impactMap.get(l2[index3 - 1])
+                        mi = math.pow(mi, val)
                         index3 -= 1
-                        mi = math.pow(mi, 2)
+                    elif l2[index3 - 1] == "not":
+                        mi = 1 - mi
+                        index3 -= 1
+                        notHappened = not notHappened
                     else:
                         break
-                miTotal += mi
+                if notHappened:
+                    miTotal += (-1)*mi
+                    notHappened = False
+                else:
+                    miTotal -= 1 - mi
+
         elif word in classes.goodKeywords:
             wordCount += 1
             index3 = index2
             mi = goodwordFunc.getMi(classes.goodKeywords[word])
-            print("Dobar Mi: ", mi)
+            #print("Dobar Mi: ", mi)
+            notHappened = False
 
             while index3 > 0:
                 if l2[index3 - 1] in negativeStr:
+                    val = modifiers.impactMap.get(l2[index3 - 1])
+                    mi = math.pow(mi, val)
                     index3 -= 1
-                    mi = math.pow(mi, 2)
                 elif l2[index3 - 1] in positiveStr:
+                    val = modifiers.impactMap.get(l2[index3 - 1])
+                    mi = math.pow(mi, 1 / val)
                     index3 -= 1
-                    mi = math.pow(mi, 0.5)
+                elif l2[index3 - 1] == "not":
+                    mi = 1 - mi
+                    index3 -= 1
+                    notHappened = not notHappened
                 else:
                     break
-            miTotal += mi
+            if notHappened:
+                miTotal += (-1)*mi
+                notHappened = False
+            else:
+                miTotal += mi
+
         elif word in classes.badKeywords:
             wordCount += 1
             index3 = index2
             mi = badwordFunc.getMi(classes.badKeywords[word])
-            print("Los Mi: ", mi)
+            #print("Los Mi: ", mi)
+            notHappened = False
 
             while index3 > 0:
                 if l2[index3 - 1] in negativeStr:
+                    val = modifiers.impactMap.get(l2[index3 - 1])
+                    mi = math.pow(mi, 1 / val)
                     index3 -= 1
-                    mi = math.pow(mi, 0.5)
                 elif l2[index3 - 1] in positiveStr:
+                    val = modifiers.impactMap.get(l2[index3 - 1])
+                    mi = math.pow(mi, val)
                     index3 -= 1
-                    mi = math.pow(mi, 2)
+                elif l2[index3 - 1] == "not":
+                    mi = 1 - mi
+                    index3 -= 1
+                    notHappened = True
                 else:
                     break
-            miTotal += mi
+            if notHappened:
+                miTotal += (-1)*mi
+                notHappened = False
+            else:
+                miTotal -= 1 - mi
 
-
+if wordCount == 0:
+    wordCount = 1
 miTotal = miTotal/wordCount
-
-print(inputParse.premiseList)
-print(miTotal)
-print(math.ceil(miTotal*10))
+grade = math.ceil(5 + 5*miTotal)
+if grade == 0:
+    grade = 1
+#print(inputParse.finalList)
+#print(miTotal)
+print(grade)

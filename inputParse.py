@@ -6,7 +6,7 @@ from nltk.corpus import stopwords
 #print(len(classes.sortedGood))
 
 
-review = input()
+review = input("Enter your review:\n")
 print("Your review: ", review)
 review = review.lower()
 
@@ -35,4 +35,4 @@ for wordList in premiseList:
     finalList.append(workingList)
     workingList = []
 
-print(finalList)
+#print(finalList)
