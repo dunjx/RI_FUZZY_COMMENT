@@ -1,5 +1,6 @@
 from enum import Enum, unique
 import inputParse
+import pandas as pd
 import classes
 import modifiers
 import math
@@ -85,30 +86,87 @@ positiveStr = {"so", "very",  "too", "much", "really", "quite", "rather", "espec
                  "truly", "definitely", "deeply",  "strongly", "more", "such"}
 negativeStr = {"hardly", "less", "nearly", "almost", "mostly", "slightly", "somewhat"}
 
-sentences = list()
-for sentence in inputParse.review.split(". "):
-    sentences.append(re.sub(r"[.,!?]", r"", sentence).split(" "))
 
-#print("Recenice cele: ", sentences)
+def fuzzy(REV):
 
-index1 = 0
-wordCount = 0
-miTotal = 0
-notHappened = False
+    review = REV.review
+    finalList = REV.getfinalList()
 
-for wordList in inputParse.finalList:
-    l2 = sentences[index1]
-    index1 += 1
-    for word in wordList:
-        index2 = l2.index(word)
+    sentences = list()
+    for sentence in review.split(". "):
+        sentences.append(re.sub(r"[,.!?]", r"", sentence).split(" "))
 
-        if word in classes.goodKeywords and word in classes.badKeywords:
+    #print("Recenice cele: ", sentences)
 
-            if classes.goodKeywords[word] >= classes.badKeywords[word]:
+    index1 = 0
+    wordCount = 0
+    miTotal = 0
+
+    for wordList in finalList:
+        l2 = sentences[index1]
+        index1 += 1
+        for word in wordList:
+            index2 = l2.index(word)
+
+            if word in classes.goodKeywords and word in classes.badKeywords:
+
+                if classes.goodKeywords[word] >= classes.badKeywords[word]:
+                    wordCount += 1
+                    index3 = index2
+                    mi = goodwordFunc.getMi(classes.goodKeywords[word])
+                    notHappened = False
+
+                    while index3 > 0:
+                        if l2[index3 - 1] in negativeStr:
+                            val = modifiers.impactMap.get(l2[index3 - 1])
+                            mi = math.pow(mi, val)
+                            index3 -= 1
+                        elif l2[index3 - 1] in positiveStr:
+                            val = modifiers.impactMap.get(l2[index3 - 1])
+                            mi = math.pow(mi, 1/val)
+                            index3 -= 1
+                        elif l2[index3 - 1] == "not":
+                            mi = 1 - mi
+                            index3 -= 1
+                            notHappened = not notHappened
+                        else:
+                            break
+                    if notHappened:
+                        miTotal += (-1)*mi
+                        notHappened = False
+                    else:
+                        miTotal += mi
+                else:
+                    wordCount += 1
+                    index3 = index2
+                    mi = badwordFunc.getMi(classes.badKeywords[word])
+                    notHappened = False
+
+                    while index3 > 0:
+                        if l2[index3 - 1] in negativeStr:
+                            val = modifiers.impactMap.get(l2[index3 - 1])
+                            mi = math.pow(mi, 1/val)
+                            index3 -= 1
+                        elif l2[index3 - 1] in positiveStr:
+                            val = modifiers.impactMap.get(l2[index3 - 1])
+                            mi = math.pow(mi, val)
+                            index3 -= 1
+                        elif l2[index3 - 1] == "not":
+                            mi = 1 - mi
+                            index3 -= 1
+                            notHappened = not notHappened
+                        else:
+                            break
+                    if notHappened:
+                        miTotal += (-1)*mi
+                        notHappened = False
+                    else:
+                        miTotal -= 1 - mi
+
+            elif word in classes.goodKeywords:
                 wordCount += 1
                 index3 = index2
                 mi = goodwordFunc.getMi(classes.goodKeywords[word])
-                #print("Dobar Mi: ", mi)
                 notHappened = False
 
                 while index3 > 0:
@@ -118,7 +176,7 @@ for wordList in inputParse.finalList:
                         index3 -= 1
                     elif l2[index3 - 1] in positiveStr:
                         val = modifiers.impactMap.get(l2[index3 - 1])
-                        mi = math.pow(mi, 1/val)
+                        mi = math.pow(mi, 1 / val)
                         index3 -= 1
                     elif l2[index3 - 1] == "not":
                         mi = 1 - mi
@@ -131,17 +189,17 @@ for wordList in inputParse.finalList:
                     notHappened = False
                 else:
                     miTotal += mi
-            else:
+
+            elif word in classes.badKeywords:
                 wordCount += 1
                 index3 = index2
                 mi = badwordFunc.getMi(classes.badKeywords[word])
-                #print("Los Mi: ", mi)
                 notHappened = False
 
                 while index3 > 0:
                     if l2[index3 - 1] in negativeStr:
                         val = modifiers.impactMap.get(l2[index3 - 1])
-                        mi = math.pow(mi, 1/val)
+                        mi = math.pow(mi, 1 / val)
                         index3 -= 1
                     elif l2[index3 - 1] in positiveStr:
                         val = modifiers.impactMap.get(l2[index3 - 1])
@@ -150,7 +208,7 @@ for wordList in inputParse.finalList:
                     elif l2[index3 - 1] == "not":
                         mi = 1 - mi
                         index3 -= 1
-                        notHappened = not notHappened
+                        notHappened = True
                     else:
                         break
                 if notHappened:
@@ -159,68 +217,30 @@ for wordList in inputParse.finalList:
                 else:
                     miTotal -= 1 - mi
 
-        elif word in classes.goodKeywords:
-            wordCount += 1
-            index3 = index2
-            mi = goodwordFunc.getMi(classes.goodKeywords[word])
-            #print("Dobar Mi: ", mi)
-            notHappened = False
+    if wordCount == 0:
+        wordCount = 1
+    miTotal = miTotal/wordCount
+    grade = round(5 + 5*miTotal)
+    if grade == 0:
+        grade = 1
+    return grade
 
-            while index3 > 0:
-                if l2[index3 - 1] in negativeStr:
-                    val = modifiers.impactMap.get(l2[index3 - 1])
-                    mi = math.pow(mi, val)
-                    index3 -= 1
-                elif l2[index3 - 1] in positiveStr:
-                    val = modifiers.impactMap.get(l2[index3 - 1])
-                    mi = math.pow(mi, 1 / val)
-                    index3 -= 1
-                elif l2[index3 - 1] == "not":
-                    mi = 1 - mi
-                    index3 -= 1
-                    notHappened = not notHappened
-                else:
-                    break
-            if notHappened:
-                miTotal += (-1)*mi
-                notHappened = False
-            else:
-                miTotal += mi
 
-        elif word in classes.badKeywords:
-            wordCount += 1
-            index3 = index2
-            mi = badwordFunc.getMi(classes.badKeywords[word])
-            #print("Los Mi: ", mi)
-            notHappened = False
+gradeList = []
+for review in classes.reviews:
+    REV = inputParse.rev(review)
+    gradeList.append(fuzzy(REV))
 
-            while index3 > 0:
-                if l2[index3 - 1] in negativeStr:
-                    val = modifiers.impactMap.get(l2[index3 - 1])
-                    mi = math.pow(mi, 1 / val)
-                    index3 -= 1
-                elif l2[index3 - 1] in positiveStr:
-                    val = modifiers.impactMap.get(l2[index3 - 1])
-                    mi = math.pow(mi, val)
-                    index3 -= 1
-                elif l2[index3 - 1] == "not":
-                    mi = 1 - mi
-                    index3 -= 1
-                    notHappened = True
-                else:
-                    break
-            if notHappened:
-                miTotal += (-1)*mi
-                notHappened = False
-            else:
-                miTotal -= 1 - mi
+df = pd.DataFrame()
+df["Predicted"] = gradeList
+df["Real"] = list(classes.testFilms["grade"])
 
-if wordCount == 0:
-    wordCount = 1
-miTotal = miTotal/wordCount
-grade = math.ceil(5 + 5*miTotal)
-if grade == 0:
-    grade = 1
-#print(inputParse.finalList)
-#print(miTotal)
-print(grade)
+same = df[df["Predicted"] == df["Real"]]
+greater = df[df["Predicted"] > df["Real"]]
+lower = df[df["Predicted"] < df["Real"]]
+one = df[abs(df["Predicted"] - df["Real"]) == 1]
+print("Total number of comments: ", len(df))
+print("Correctly guessed grade: ", len(same))
+print("Grades difference is 1: ", len(one))
+print("Overestimated: ", len(greater))
+print("Underestimated: ", len(lower))
