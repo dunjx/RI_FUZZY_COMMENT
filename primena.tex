@@ -47,7 +47,7 @@ Rad [2] se bavi analizom polarnosti ose\cc anja u recenzijama filmova napisanih 
 
 Prilikom reshavanja ovog zadatka bilo je potrebno formalnim, matematichkim jezikom opisati prirodan jezik, tj. uchiniti da program razume recenziju napisanu na prirodnom jeziku. Za reshavanje problema izabrane su metode fazi logike. Na osnovu unete recenzije, odredjuje se vrednost iz realnog intervala [0,1] koja predstavlja stepen pripadnosti filma skupu dobrih filmova. Prednost upotrebe fazi logike i funkcije pripadnosti skupu dobrih filmova je elegantno reshenje situacije da se recenzijom uglavnom iznose i dobre i loshe karakteristike filma, shto podrazumeva da ve\cc ina filmova ne\cc e biti ni potpuno dobri ni potpuno loshi. Druga prednost ovakvog nachina ocenjivanja je shto se interval [0,1] lako preslikava na ocene od 1 do 10.
 
-Na samom pochetku \textit{\Lat IMDb User reviews} stranice su razdvojene tako shto su iz svake rechenice recenzije sachuvane bitne rechi, tj. izbacuju se tzv. \textit{\Lat stop words}, rechi koje se chesto pojavljuju u rechenicama ali ne igraju nikakvu ulogu u znachenju rechenice. Ove rechi su sadrzhane u \textit{\Lat python} biblioteci \textit{\Lat nltk.corpus}. Osim \textit{\Lat stop} rechi iz recenzija su izbacheni i modifikatori, chija \cc e uloga kasnije da bude objashnjena. Parovi \textit{\Lat (lista bitnih reci, ocena komentara)} su formirani na osnovu recenzija svih 18 filmova korish\cc enih za testiranje i sachuvani u \textit{\Lat csv} fajlu. Zatim su napravljenje dve mape, od kojih jedna sadrzhi sve bitne rechi koje se pojavljuju u recenzijama filmova ocenjenih sa 1, 2 i 3, dok druga mapa sadrzhi rechi koje se pojavljuju u recenzijama filmova ocenjenih sa 8, 9 i 10. Kljuchevi elemenata mapa su rechi, a vrednosti su broj pojavljivanja u loshim recenzijama i broj pojavljivanja u dobrim recenzijama. Ova dva skupa rechi su uslovno nazvana skupom dobrih rechi i skupom loshih rechi u zavisnosti od toga da li hvale film ili ga kritikuju. Za odluchivanje da li rech pripada skupu dobrih ili loshih rechi je bilo presudno u kojim recenzijama se frekventnije pojavljuje. Intuitivno bi bilo uzimati razliku te dve frekventnosti kao vrednost u mapi, jer ako se rech pojavljuje isti broj puta i u pozitivnim i u negativnim komentarima, ona mozhe da deluje neutralno. Medjutim, na osnovu recenzija je prime\cc eno da su se pozitivne rechi u velikom broju javljale u negativnim recenzijama u formi negacije. Frekventnost pojavljivanja dobre rechi u loshim komentarima ne umanjuje njen znachaj kao dobre rechi, pa je za vrednost uzet maksimum ta dva pojavljivanja.
+Na samom pochetku \textit{\Lat IMDb User reviews} stranice su razdvojene tako shto su iz svake rechenice recenzije sachuvane bitne rechi, tj. izbacuju se tzv. \textit{\Lat stop words}, rechi koje se chesto pojavljuju u rechenicama ali ne igraju nikakvu ulogu u znachenju rechenice. Ove rechi su sadrzhane u \textit{\Lat python} biblioteci \textit{\Lat nltk.corpus}. Osim \textit{\Lat stop} rechi iz recenzija su izbacheni i modifikatori, chija \cc e uloga kasnije da bude objashnjena. Parovi \textit{\Lat (lista bitnih reci, ocena komentara)} su formirani na osnovu recenzija svih 18  korish\cc enih filmova i sachuvani u \textit{\Lat csv} fajlu. Zatim su napravljenje dve mape, od kojih jedna sadrzhi sve bitne rechi koje se pojavljuju u recenzijama filmova ocenjenih sa 1, 2 i 3, dok druga mapa sadrzhi rechi koje se pojavljuju u recenzijama filmova ocenjenih sa 8, 9 i 10. Kljuchevi elemenata mapa su rechi, a vrednosti su broj pojavljivanja u loshim recenzijama i broj pojavljivanja u dobrim recenzijama. Ova dva skupa rechi su uslovno nazvana skupom dobrih rechi i skupom loshih rechi u zavisnosti od toga da li hvale film ili ga kritikuju. Za odluchivanje da li rech pripada skupu dobrih ili loshih rechi je bilo presudno u kojim recenzijama se frekventnije pojavljuje. Intuitivno bi bilo uzimati razliku te dve frekventnosti kao vrednost u mapi, jer ako se rech pojavljuje isti broj puta i u pozitivnim i u negativnim komentarima, ona mozhe da deluje neutralno. Medjutim, na osnovu recenzija je prime\cc eno da su se pozitivne rechi u velikom broju javljale u negativnim recenzijama u formi negacije. Frekventnost pojavljivanja dobre rechi u loshim komentarima ne umanjuje njen znachaj kao dobre rechi, pa je za vrednost uzet maksimum ta dva pojavljivanja.
 
 Fazi funkcije pripadnosti su definisane trapezoidnim funkcijama. Funkcija dobrih rechi (slika 1. levo) ima znachajne tachke (0,0) i (110,1), a funkija loshih rechi (slika 1. desno) ima znachajne tachke (0,1) i (60,0). Ovo znachi da kako se pove\cc ava broj pojavljivanja dobrih rechi u recenziji, tako raste vrednost funkcije pripadnosti skupu dobrih filmova, a kako raste broj pojavljivanja loshih rechi tako opada vrednost funkcije pripadnosti skupu dobrih filmova. 
 
@@ -61,19 +61,20 @@ Fazi funkcije pripadnosti su definisane trapezoidnim funkcijama. Funkcija dobrih
 Lingvistichke promenljive su promenljive chije su vrednosti rechi prirodnog jezika. Vrednost ovih promenljivih mozhe da se pove\cc a ili smanji primenom modifikatora. U prirodnim jezicima oni obichno predstavljaju neke prideve ili priloge. Postoje razlichite vrste modifikatora:
 \begin{itemize}
     \begin{justify}
-    \item \textbf{Koncentracioni}, koji slabe vrednosti promenljivih uz koje stoje tj. utichu tako da vrednosti funkcije postanu vishe koncetrisane oko tachaka sa ve\cc im stepenom pripadnosti.
+    \item \textbf{Koncentracioni}, koji jachaju vrednosti promenljivih uz koje stoje tj. utichu tako da vrednosti funkcije postanu vishe koncetrisane oko tachaka sa ve\cc im stepenom pripadnosti.
     
     \centering\(\mu_{A'}(x) = \mu_{A}(x)^{\frac{1}{p}}\)  za \textit{\Lat p} ve\cc e od 1
     \end{justify}
     \begin{justify}
-	\item \textbf{Dilatacioni}, kojima se vrednost funkcije pripadnosti pove\cc ava.
+	\item \textbf{Dilatacioni}, kojima se vrednost funkcije pripadnosti smanjuje.
 	
     \centering\(\mu_{A'}(x) = \mu_{A}(x)^{p}\)  za \textit{\Lat p} ve\cc e od 1
     
     \end{justify}
 	
 \end{itemize} 
-
+\newline
+\newline
 Pored ovih postoje josh i: kontrastni intenzifikatori, kontrastni deintenzifikatori, probabilistichki... U daljem radu koristi\cc emo prve dve vrste modifikatora.
 
 U sluchaju problema recenzija filmova, lingvistichke promenljive su rechi koje se pojavljuju u recenzijama sa visokim ili niskim ocenama, tj. bitne rechi. Modifikatori ovde predstavljaju rechi koje chesto stoje uz bitne rechi i dodatno ih opisuju, pojachavaju\cc i ili umanjuju\cc i njihovo znachenje. Modifikatori su podeljeni u tri grupe, na osnovu toga koliko jachaju znachenje bitne rechi, a u zavisnosti od toga u koju od te tri grupe spadaju, dodeljene su im i ocene.
@@ -85,6 +86,7 @@ Obrada samih komentara odvojena je od fazi logike. Komentari su bivali prochish\
 Zarad lakshe obrade, skup prochish\cc enih rechi i skup sa svakom rechju iz komentara su predstavljeni listama. Nakon razvrstavanja ovih rechi u odgovaraju\cc e liste, skupovi su bivali prosledjeni glavnom programu za konachnu obradu i dodelu ocene komentaru.
 \end{justify}
 
+\newpage
 \section{Rezultati primene reshenja}
 \begin{justify}
 Reshenje je testirano na recenzijama sa ocenama iz intervala od 4 do 7, s obzirom da je program obuchavan na recenzijama sa najnizhim i najvishim ocenama (od 1 do 3 i od 8 do 9).
